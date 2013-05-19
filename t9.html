@@ -1,0 +1,155 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body>
+
+<script type="text/javascript">
+var mapping = {
+	'2': ['A', 'B', 'C'],
+	'3': ['D', 'E', 'F'],
+	'4': ['G', 'H', 'I'],
+	'5': ['J', 'K', 'L'],
+	'6': ['M', 'N', 'O'],
+	'7': ['P', 'Q', 'R', 'S'],
+	'8': ['T', 'U', 'V'],
+	'9': ['W', 'X', 'Y', 'Z']
+};
+
+var store = new Array();
+var actualStep = 1;
+var mode = 0;
+
+function steps() {
+	mode = 1;
+	var text = document.getElementById('input').value;
+	var splittet = text.split('');
+	
+	if (splittet.length <= actualStep) {
+		alert("fertig");
+		return;
+	}
+	
+	if(!checkInput(splittet)) {
+		return;
+	}
+
+	// Untersuchen ob dieses Element betrachtet werden soll
+	var checkBoxes = document.getElementsByName("selection");
+	store = new Array();
+	for( var i=0; i<checkBoxes.length; i++) {
+		var cb = checkBoxes[i];
+		if(cb.checked) {
+			store.unshift(cb.value);
+		}
+	}
+
+	clean();
+	actualStep++;
+	var newArray = splittet.reverse().slice(splittet.length - actualStep).reverse();
+
+	iterieren('', newArray);
+};
+
+function checkInput(list) {
+	for(var i=0; i<list.length; i++) {
+		var ch = list[i];
+		if( isNaN(ch) || ch<2 || ch>9) {
+			confirm("Falsche Eingabe " + ch + ". Bitte nur Zahlen zwischen 2 und 9 eingeben");
+			return false;
+		}
+	}
+	
+	return true;
+};
+
+function start() {
+	mode = 0;
+	var text = document.getElementById('input').value;
+	
+	var splittet = text.split('');
+	if(!checkInput(splittet)) {
+		return;
+	}
+	clean();
+
+	iterieren('', splittet);
+};
+
+function clean() {
+	var resultNode = document.getElementById("resultList");
+	while (resultNode.firstChild) {
+    	resultNode.removeChild(resultNode.firstChild);
+	}
+}
+
+
+function iterieren(string, restList) {
+	var mychar = restList.shift();
+	
+	var translations = mapping[mychar];
+	if(translations==null) {
+		return null;
+	}
+	for(var a=0; a<translations.length; a++) {
+		var new_string = string + translations[a];
+		if(restList.length > 0) {
+			iterieren(new_string, restList.slice());
+		} else {
+			createNode(new_string);
+		}
+	}
+};
+
+function createNode(string) {
+	var resultNode = document.getElementById("resultList");
+	var child = document.createElement("li");
+	
+	if(mode==1) {
+		var found = false;
+		for(var i=0; i<store.length; i++) {
+			var start = store[i];
+			if(string.substring(0, start.length) == start) {
+				found=true;
+			}
+		}
+		if(!found && actualStep>2) {
+			return;
+		}
+		var cb = document.createElement('input');
+    	cb.type = 'checkbox';
+    	child.appendChild(cb);
+    	cb.name = "selection";
+    	cb.value = string;
+    	cb.appendChild(document.createTextNode(string));
+	}
+	child.appendChild(document.createTextNode(string));	
+	
+	resultNode.appendChild(child);
+};
+
+function resetAll() {
+	mode=0;
+	clean();
+	actualStep=1;
+};
+
+</script>
+
+<div id="container">
+
+<form  action="#" onsubmit="return 0;">
+<input type="text" name="T9" id="input"/>
+<input type="button" value="auswerten" onClick="start();"/>
+<input type="button" value="Schrittweise auswerten" onClick="steps();"/>
+<input type="button" value="Zurücksetzen" onClick="resetAll();"/>
+
+
+<ul id="resultList" />
+
+
+</form>
+
+<div>
+</body>
+</html>
